@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Success</title>
+</head>
+<body style="font-family:system-ui;padding:20px;">
+  <h1>Payment successful ✅</h1>
+  <p id="msg">Preparing your download…</p>
+  <p><a href="./index.html">Back to store</a></p>
+
+ <script>
+  const API_BASE = "http://localhost:4242";
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get("session_id");
+  const msg = document.getElementById("msg");
+
+  async function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  async function run() {
+    if (!sessionId) {
+      msg.textContent = "Missing session id. Please return to the store.";
+      return;
+    }
+
+    msg.textContent = "Payment confirmed. Preparing your download…";
+
+    for (let i = 0; i < 12; i++) { // ~30 seconds total
+      const res = await fetch(`${API_BASE}/download-link?session_id=${encodeURIComponent(sessionId)}`);
+      const data = await res.json();
+
+      if (res.ok) {
+        msg.innerHTML = `Your file is ready: <strong>${data.fileName}</strong><br><br>
+          <a href="${data.downloadUrl}">Download now</a>`;
+        return;
+      }
+
+      await sleep(2500);
+    }
+
+    msg.textContent = "Still preparing your download. If this keeps happening, contact support.";
+  }
+
+  run().catch(() => msg.textContent = "Something went wrong preparing your download.");
+</script>
+
+</body>
+</html>
+
